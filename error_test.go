@@ -2,6 +2,7 @@ package gocerr
 
 import (
 	"errors"
+	"net/http"
 	"testing"
 )
 
@@ -95,52 +96,52 @@ func TestParse(t *testing.T) {
 		Name     string
 		Error    error
 		Expected struct {
-			IsCustomError bool
 			CustomError   Error
+			IsCustomError bool
 		}
 	}{
 		{
 			Name:  "error is nil",
 			Error: nil,
 			Expected: struct {
-				IsCustomError bool
 				CustomError   Error
+				IsCustomError bool
 			}{
-				IsCustomError: false,
 				CustomError:   Error{},
+				IsCustomError: false,
 			},
 		},
 		{
 			Name:  "error is not custom error",
 			Error: errors.New("some error"),
 			Expected: struct {
-				IsCustomError bool
 				CustomError   Error
+				IsCustomError bool
 			}{
-				IsCustomError: false,
 				CustomError:   Error{},
+				IsCustomError: false,
 			},
 		},
 		{
 			Name:  "error is custom error",
 			Error: New(500, "internal server error"),
 			Expected: struct {
-				IsCustomError bool
 				CustomError   Error
+				IsCustomError bool
 			}{
-				IsCustomError: true,
 				CustomError:   New(500, "internal server error"),
+				IsCustomError: true,
 			},
 		},
 		{
 			Name:  "error is custom error with error fields",
 			Error: New(400, "bad request", NewErrorField("field1", "field is required")),
 			Expected: struct {
-				IsCustomError bool
 				CustomError   Error
+				IsCustomError bool
 			}{
-				IsCustomError: true,
 				CustomError:   New(400, "bad request", NewErrorField("field1", "field is required")),
+				IsCustomError: true,
 			},
 		},
 	}
@@ -148,11 +149,11 @@ func TestParse(t *testing.T) {
 	for i := 0; i < len(testCases); i++ {
 		t.Run(testCases[i].Name, func(t *testing.T) {
 			var (
-				actualIsCustomError bool
 				actualCustomError   Error
+				actualIsCustomError bool
 			)
 
-			actualIsCustomError, actualCustomError = Parse(testCases[i].Error)
+			actualCustomError, actualIsCustomError = Parse(testCases[i].Error)
 
 			if testCases[i].Expected.IsCustomError != actualIsCustomError {
 				t.Errorf("expected is custom error is %t, but got %t", testCases[i].Expected.IsCustomError, actualIsCustomError)
@@ -181,6 +182,45 @@ func TestParse(t *testing.T) {
 				if testCases[i].Expected.CustomError.ErrorFields[j].Message != actualCustomError.ErrorFields[j].Message {
 					t.Errorf("expected message of error fields sub item custom error is %s, but got %s", testCases[i].Expected.CustomError.ErrorFields[j].Message, actualCustomError.ErrorFields[j].Message)
 				}
+			}
+		})
+	}
+}
+
+func TestIsErrorCodeEqual(t *testing.T) {
+	var testCases []struct {
+		Name        string
+		Code        int
+		Error       error
+		Expectation bool
+	} = []struct {
+		Name        string
+		Code        int
+		Error       error
+		Expectation bool
+	}{
+		{
+			Name:        "error is not custom error",
+			Code:        http.StatusInternalServerError,
+			Error:       nil,
+			Expectation: false,
+		},
+		{
+			Name: "error code is equal",
+			Code: http.StatusInternalServerError,
+			Error: Error{
+				Code: http.StatusInternalServerError,
+			},
+			Expectation: true,
+		},
+	}
+
+	for i := range testCases {
+		t.Run(testCases[i].Name, func(t *testing.T) {
+			var actual bool = IsErrorCodeEqual(testCases[i].Error, testCases[i].Code)
+
+			if testCases[i].Expectation != actual {
+				t.Errorf("expectation is %t, got %t", testCases[i].Expectation, actual)
 			}
 		})
 	}

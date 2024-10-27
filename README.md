@@ -18,18 +18,19 @@ import (
 
 func main() {
 	var (
-		err           error
-		isCustomError bool
-		customError   gocerr.Error
+		err             error
+		isCustomError   bool
+		customError     gocerr.Error
+		isBadRequestErr bool
 	)
 
 	// error from gocerr
 	err = gocerr.New(
-		http.StatusBadRequest, // not only for http, you can set any error code here
-		http.StatusText(http.StatusBadRequest), // set error message
-		gocerr.NewErrorField("field1", "field is required"), // additional error struct field validation
+		http.StatusBadRequest,                                              // not only for http, you can set any error code here
+		http.StatusText(http.StatusBadRequest),                             // set error message
+		gocerr.NewErrorField("field1", "field is required"),                // additional error struct field validation
 		gocerr.NewErrorField("field2", fmt.Sprintf("min value is %d", 50)), // additional error struct field validation
-		gocerr.NewErrorField("fieldN", "error message validation"), // additional error struct field validation
+		gocerr.NewErrorField("fieldN", "error message validation"),         // additional error struct field validation
 	)
 
 	fmt.Println(err.Error()) // print the error message from Error.Message
@@ -38,7 +39,7 @@ func main() {
 	// if err is gocerr error
 	// will return isCustomError true and customError struct with value from err parameter
 	// otherwise, will isCustomError false and customError empty struct
-	isCustomError, customError = gocerr.Parse(err)
+	customError, isCustomError = gocerr.Parse(err)
 
 	if isCustomError {
 		fmt.Println(customError.Code)    // error code
@@ -48,5 +49,11 @@ func main() {
 			fmt.Println(customError.ErrorFields[i].Message) // additional error field message
 		}
 	}
+
+	// parse error to gocerr
+	// if error is gocerr error and the gocerr error code is equal to given code parameter will return true
+	// otherwise return false
+	isBadRequestErr = gocerr.IsErrorCodeEqual(err, http.StatusBadRequest)
+	fmt.Println(isBadRequestErr)
 }
 ```

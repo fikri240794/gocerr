@@ -20,12 +20,31 @@ func (e Error) Error() string {
 	return e.Message
 }
 
-func Parse(err error) (bool, Error) {
+func Parse(err error) (Error, bool) {
+	var (
+		customError   Error
+		isCustomError bool
+	)
+
 	if err == nil {
-		return false, Error{}
+		return Error{}, false
 	}
 
-	customError, isCustomError := err.(Error)
+	customError, isCustomError = err.(Error)
 
-	return isCustomError, customError
+	return customError, isCustomError
+}
+
+func IsErrorCodeEqual(err error, code int) bool {
+	var (
+		customError   Error
+		isCustomError bool
+	)
+
+	customError, isCustomError = Parse(err)
+	if !isCustomError {
+		return false
+	}
+
+	return customError.Code == code
 }
