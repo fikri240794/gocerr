@@ -21,6 +21,7 @@ func main() {
 		err             error
 		isCustomError   bool
 		customError     gocerr.Error
+		customErrorCode int
 		isBadRequestErr bool
 	)
 
@@ -49,6 +50,12 @@ func main() {
 			fmt.Println(customError.ErrorFields[i].Message) // additional error field message
 		}
 	}
+
+	// parse error to gocerr
+	// if error is gocerr error then return gocerr error code
+	// otherwise return 0
+	customErrorCode = gocerr.GetErrorCode(err)
+	fmt.Println(customErrorCode)
 
 	// parse error to gocerr
 	// if error is gocerr error and the gocerr error code is equal to given code parameter will return true

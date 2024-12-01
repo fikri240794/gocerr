@@ -35,7 +35,7 @@ func Parse(err error) (Error, bool) {
 	return customError, isCustomError
 }
 
-func IsErrorCodeEqual(err error, code int) bool {
+func GetErrorCode(err error) int {
 	var (
 		customError   Error
 		isCustomError bool
@@ -43,8 +43,12 @@ func IsErrorCodeEqual(err error, code int) bool {
 
 	customError, isCustomError = Parse(err)
 	if !isCustomError {
-		return false
+		return 0
 	}
 
-	return customError.Code == code
+	return customError.Code
+}
+
+func IsErrorCodeEqual(err error, code int) bool {
+	return GetErrorCode(err) == code
 }

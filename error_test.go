@@ -187,6 +187,41 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TesGetErrorCode(t *testing.T) {
+	var testCases []struct {
+		Name        string
+		Error       error
+		Expectation int
+	} = []struct {
+		Name        string
+		Error       error
+		Expectation int
+	}{
+		{
+			Name:        "error is not custom error",
+			Error:       nil,
+			Expectation: 0,
+		},
+		{
+			Name: "error code is internal server error",
+			Error: Error{
+				Code: http.StatusInternalServerError,
+			},
+			Expectation: http.StatusInternalServerError,
+		},
+	}
+
+	for i := range testCases {
+		t.Run(testCases[i].Name, func(t *testing.T) {
+			var actual int = GetErrorCode(testCases[i].Error)
+
+			if testCases[i].Expectation != actual {
+				t.Errorf("expectation is %d, got %d", testCases[i].Expectation, actual)
+			}
+		})
+	}
+}
+
 func TestIsErrorCodeEqual(t *testing.T) {
 	var testCases []struct {
 		Name        string
